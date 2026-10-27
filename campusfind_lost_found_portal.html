@@ -1,0 +1,1073 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CampusFind: Lost & Found Portal</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Phosphor Icons for Crisp Academic/Utility UI -->
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <!-- Google Fonts Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace']
+          },
+          colors: {
+            campus: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              200: '#c7d2fe',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+              800: '#3730a3',
+              900: '#1e1b4b'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Smooth transitions and scrollbars */
+    * {
+      scroll-behavior: smooth;
+    }
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+    .modal-backdrop {
+      background-color: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(6px);
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col antialiased">
+
+  <!-- Top Announcement Bar -->
+  <div class="bg-gradient-to-r from-campus-900 via-indigo-950 to-slate-900 text-white text-xs py-2 px-4 text-center font-medium flex items-center justify-center gap-2">
+    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-indigo-500/30 text-indigo-200 border border-indigo-400/30">Official Portal</span>
+    <span>Campus Security Office Safe Pickup: <strong>Admin Block Room 102</strong> (Open 9:00 AM – 5:00 PM)</span>
+  </div>
+
+  <!-- Navigation Bar -->
+  <header class="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+      
+      <!-- Brand Logo -->
+      <div class="flex items-center gap-3 cursor-pointer" onclick="resetFiltersAndScroll()">
+        <div class="h-10 w-10 rounded-xl bg-campus-600 flex items-center justify-center text-white shadow-md shadow-indigo-600/25">
+          <i class="ph-bold ph-compass text-2xl"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-extrabold text-lg sm:text-xl tracking-tight text-slate-900">CampusFind</span>
+            <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200/60">University</span>
+          </div>
+          <p class="text-[11px] text-slate-400 -mt-0.5 hidden sm:block">Centralized Lost & Found Recovery</p>
+        </div>
+      </div>
+
+      <!-- Quick Search Bar (Header) -->
+      <div class="flex-1 max-w-md hidden md:block">
+        <div class="relative">
+          <i class="ph-bold ph-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-base"></i>
+          <input type="text" id="headerSearchInput" placeholder="Quick search items, departments, locations..." class="w-full pl-10 pr-4 py-2 text-xs rounded-xl bg-slate-100/80 border border-slate-200 focus:bg-white focus:outline-none focus:ring-2 focus:ring-campus-500 focus:border-transparent transition">
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex items-center gap-2 sm:gap-3">
+        <button onclick="openReportModal('LOST')" class="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-rose-700 bg-rose-50 border border-rose-200 hover:bg-rose-100 transition active:scale-95">
+          <i class="ph-bold ph-warning-circle text-sm"></i>
+          <span>Report Lost</span>
+        </button>
+        <button onclick="openReportModal('FOUND')" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-white bg-campus-600 hover:bg-campus-700 shadow-sm shadow-campus-600/30 transition active:scale-95">
+          <i class="ph-bold ph-plus-circle text-base"></i>
+          <span>Report Item</span>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- Hero & Metric Summary Section -->
+  <section class="bg-gradient-to-b from-white to-slate-50 border-b border-slate-200 pt-8 pb-10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <!-- Headline & Subtitle -->
+      <div class="text-center max-w-2xl mx-auto mb-8">
+        <h1 class="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+          Recover Lost Belongings on Campus
+        </h1>
+        <p class="text-slate-500 text-sm mt-2">
+          Real-time collaborative campus catalog linking students, library custodians, and lab administrators.
+        </p>
+      </div>
+
+      <!-- Live KPI Cards -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 max-w-5xl mx-auto">
+        <!-- Total Reports -->
+        <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs flex items-center gap-3.5">
+          <div class="p-3 rounded-xl bg-slate-100 text-slate-700">
+            <i class="ph-bold ph-stack text-xl"></i>
+          </div>
+          <div>
+            <div id="statTotalItems" class="text-2xl font-black font-mono text-slate-900 leading-none">0</div>
+            <div class="text-[11px] font-medium text-slate-400 mt-1 uppercase tracking-wide">Total Logged</div>
+          </div>
+        </div>
+
+        <!-- Active Lost -->
+        <div class="bg-white p-4 rounded-2xl border border-rose-100 shadow-xs flex items-center gap-3.5">
+          <div class="p-3 rounded-xl bg-rose-50 text-rose-600">
+            <i class="ph-bold ph-magnifying-glass text-xl"></i>
+          </div>
+          <div>
+            <div id="statActiveLost" class="text-2xl font-black font-mono text-rose-600 leading-none">0</div>
+            <div class="text-[11px] font-medium text-slate-400 mt-1 uppercase tracking-wide">Still Lost</div>
+          </div>
+        </div>
+
+        <!-- Awaiting Claim / Found -->
+        <div class="bg-white p-4 rounded-2xl border border-emerald-100 shadow-xs flex items-center gap-3.5">
+          <div class="p-3 rounded-xl bg-emerald-50 text-emerald-600">
+            <i class="ph-bold ph-hand-heart text-xl"></i>
+          </div>
+          <div>
+            <div id="statAwaitingClaim" class="text-2xl font-black font-mono text-emerald-600 leading-none">0</div>
+            <div class="text-[11px] font-medium text-slate-400 mt-1 uppercase tracking-wide">Awaiting Claim</div>
+          </div>
+        </div>
+
+        <!-- Resolved -->
+        <div class="bg-white p-4 rounded-2xl border border-indigo-100 shadow-xs flex items-center gap-3.5">
+          <div class="p-3 rounded-xl bg-indigo-50 text-campus-600">
+            <i class="ph-bold ph-check-circle text-xl"></i>
+          </div>
+          <div>
+            <div id="statResolved" class="text-2xl font-black font-mono text-campus-600 leading-none">0</div>
+            <div class="text-[11px] font-medium text-slate-400 mt-1 uppercase tracking-wide">Returned to Owner</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Filter & Catalog Section -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+
+    <!-- Search & Filter Controls -->
+    <div class="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-xs space-y-4">
+      <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+        
+        <!-- Keyword Search Input -->
+        <div class="relative flex-1">
+          <i class="ph-bold ph-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+          <input type="text" id="searchInput" placeholder="Search by item name, model, color, or details..." class="w-full pl-10 pr-9 py-2.5 text-xs font-medium rounded-xl border border-slate-200 bg-slate-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-campus-500 focus:border-transparent transition">
+          <button id="clearSearchBtn" class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+            <i class="ph-bold ph-x-circle text-sm"></i>
+          </button>
+        </div>
+
+        <!-- Reset & Seed Data Controls -->
+        <div class="flex items-center gap-2">
+          <button onclick="resetFilters()" class="px-3 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-xs font-semibold text-slate-600 transition flex items-center gap-1.5">
+            <i class="ph-bold ph-arrow-counter-clockwise"></i>
+            <span>Reset</span>
+          </button>
+          <button onclick="seedInitialData(true)" title="Re-populate demo mock records" class="px-3 py-2.5 rounded-xl border border-dashed border-slate-300 hover:border-slate-400 text-xs font-semibold text-slate-500 hover:text-slate-700 transition flex items-center gap-1.5">
+            <i class="ph-bold ph-database"></i>
+            <span class="hidden sm:inline">Reset Sample Data</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Filter Dropdowns Row -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3 border-t border-slate-100">
+        
+        <!-- Status Filter -->
+        <div>
+          <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Status</label>
+          <select id="statusFilter" class="w-full text-xs font-medium rounded-xl border border-slate-200 bg-slate-50/50 p-2 focus:outline-none focus:ring-2 focus:ring-campus-500 text-slate-700">
+            <option value="ALL">All Items</option>
+            <option value="LOST">Lost Only</option>
+            <option value="FOUND">Found Only</option>
+            <option value="RESOLVED">Claimed / Resolved</option>
+          </select>
+        </div>
+
+        <!-- Category Filter -->
+        <div>
+          <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Category</label>
+          <select id="categoryFilter" class="w-full text-xs font-medium rounded-xl border border-slate-200 bg-slate-50/50 p-2 focus:outline-none focus:ring-2 focus:ring-campus-500 text-slate-700">
+            <option value="ALL">All Categories</option>
+            <option value="Electronics">Electronics & Gadgets</option>
+            <option value="ID & Cards">Student ID & Smartcards</option>
+            <option value="Bags & Books">Bags, Notebooks & Books</option>
+            <option value="Keys & Wallets">Keys, Wallets & Badges</option>
+            <option value="Accessories">Bottles, Apparel & Others</option>
+          </select>
+        </div>
+
+        <!-- Campus Location Filter -->
+        <div>
+          <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Location Zone</label>
+          <select id="locationFilter" class="w-full text-xs font-medium rounded-xl border border-slate-200 bg-slate-50/50 p-2 focus:outline-none focus:ring-2 focus:ring-campus-500 text-slate-700">
+            <option value="ALL">All Campus Zones</option>
+            <option value="Central Library">Central Library</option>
+            <option value="Computer Center">Computer Center / IT Labs</option>
+            <option value="Student Canteen">Student Canteen & Food Court</option>
+            <option value="Sports Complex">Sports Complex / Grounds</option>
+            <option value="Academic Block">Academic Blocks (A, B, C)</option>
+            <option value="Hostel Grounds">Hostel Premises</option>
+          </select>
+        </div>
+
+        <!-- Sort Filter -->
+        <div>
+          <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Sort By</label>
+          <select id="sortFilter" class="w-full text-xs font-medium rounded-xl border border-slate-200 bg-slate-50/50 p-2 focus:outline-none focus:ring-2 focus:ring-campus-500 text-slate-700">
+            <option value="NEWEST">Date: Newest First</option>
+            <option value="OLDEST">Date: Oldest First</option>
+            <option value="TITLE">Title (A - Z)</option>
+          </select>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Active Filter Chips / Result Counts -->
+    <div class="flex items-center justify-between text-xs text-slate-500">
+      <div id="resultsCount">Showing 0 matching items</div>
+      <div class="flex items-center gap-1.5 text-slate-400 text-[11px]">
+        <i class="ph-bold ph-shield-check text-emerald-600"></i>
+        <span>Security verified submissions</span>
+      </div>
+    </div>
+
+    <!-- Dynamic Items Grid -->
+    <div id="itemsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+      <!-- Cards will be dynamically injected here -->
+    </div>
+
+    <!-- Empty State Container (Hidden by default) -->
+    <div id="emptyState" class="hidden text-center py-16 bg-white rounded-3xl border border-dashed border-slate-300 p-8">
+      <div class="h-16 w-16 mx-auto rounded-full bg-slate-100 flex items-center justify-center text-slate-400 mb-4">
+        <i class="ph-bold ph-magnifying-glass text-3xl"></i>
+      </div>
+      <h3 class="text-base font-bold text-slate-800">No matching campus records found</h3>
+      <p class="text-xs text-slate-500 max-w-md mx-auto mt-1">
+        Try adjusting your keywords, resetting category filters, or register a new report for missing or retrieved belongings.
+      </p>
+      <div class="mt-5 flex items-center justify-center gap-3">
+        <button onclick="resetFilters()" class="px-4 py-2 text-xs font-semibold rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition">
+          Clear Filters
+        </button>
+        <button onclick="openReportModal('LOST')" class="px-4 py-2 text-xs font-semibold rounded-xl bg-campus-600 hover:bg-campus-700 text-white transition">
+          Log a New Item
+        </button>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Campus Safe Exchange Info Footer Section -->
+  <section class="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 mb-8">
+    <div class="bg-gradient-to-r from-slate-900 to-indigo-950 rounded-2xl p-6 text-white flex flex-col md:flex-row items-center justify-between gap-6">
+      <div class="space-y-1.5 text-center md:text-left">
+        <div class="inline-flex items-center gap-2 text-xs font-semibold text-emerald-400">
+          <i class="ph-bold ph-shield-check"></i>
+          <span>Official Campus Protocol</span>
+        </div>
+        <h4 class="text-lg font-bold">Designated Campus Safe Pickup Points</h4>
+        <p class="text-xs text-slate-300 max-w-xl">
+          Never hand over high-value gadgets or credentials in secluded areas. Always conduct handover verification at the <strong>Central Security Desk</strong> or <strong>Library Circulation Counter</strong>.
+        </p>
+      </div>
+      <div class="flex items-center gap-3">
+        <div class="text-right hidden sm:block">
+          <div class="text-xs font-semibold text-slate-200">Campus Emergency Hotline</div>
+          <div class="text-sm font-mono font-bold text-emerald-400">Ext: 2211 / +1 (800) 555-CAMPUS</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Page Footer -->
+  <footer class="bg-white border-t border-slate-200 py-6 text-center text-xs text-slate-400">
+    <p>&copy; CampusFind Lost & Found System. Institutional Web Portal for Student Services.</p>
+  </footer>
+
+  <!-- ================= MODALS & POPUPS ================= -->
+
+  <!-- Report Item Modal -->
+  <div id="reportModal" class="fixed inset-0 z-50 hidden overflow-y-auto modal-backdrop flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-xl w-full p-6 shadow-2xl border border-slate-100 relative my-8 transform transition-all">
+      
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+        <div>
+          <h3 id="modalTitle" class="text-lg font-bold text-slate-900">Report an Item</h3>
+          <p class="text-xs text-slate-400 mt-0.5">Fill in accurate information to assist students and staff in finding it</p>
+        </div>
+        <button onclick="closeReportModal()" class="h-8 w-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition">
+          <i class="ph-bold ph-x text-sm"></i>
+        </button>
+      </div>
+
+      <!-- Report Form -->
+      <form id="reportForm" onsubmit="handleReportSubmit(event)" class="space-y-4 pt-4">
+        
+        <!-- Type Selection Toggle (Lost vs Found) -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1.5">Report Type</label>
+          <div class="grid grid-cols-2 gap-3">
+            <label class="relative flex items-center justify-center p-3 rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-50 transition has-[:checked]:border-rose-500 has-[:checked]:bg-rose-50/50">
+              <input type="radio" name="itemType" value="LOST" class="peer sr-only" checked>
+              <span class="text-xs font-bold text-slate-700 peer-checked:text-rose-700 flex items-center gap-1.5">
+                <i class="ph-bold ph-warning-circle text-rose-600"></i>
+                <span>I Lost an Item</span>
+              </span>
+            </label>
+            <label class="relative flex items-center justify-center p-3 rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-50 transition has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-50/50">
+              <input type="radio" name="itemType" value="FOUND" class="peer sr-only">
+              <span class="text-xs font-bold text-slate-700 peer-checked:text-emerald-700 flex items-center gap-1.5">
+                <i class="ph-bold ph-hand-heart text-emerald-600"></i>
+                <span>I Found an Item</span>
+              </span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Item Title -->
+        <div>
+          <label for="formTitle" class="block text-xs font-bold text-slate-700 mb-1">Item Title / Name *</label>
+          <input type="text" id="formTitle" required placeholder="e.g. Dell XPS USB-C Charger with black cable" class="w-full text-xs font-medium rounded-xl border border-slate-200 p-2.5 focus:outline-none focus:ring-2 focus:ring-campus-500">
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <!-- Category -->
+          <div>
+            <label for="formCategory" class="block text-xs font-bold text-slate-700 mb-1">Category *</label>
+            <select id="formCategory" required class="w-full text-xs font-medium rounded-xl border border-slate-200 p-2.5 focus:outline-none focus:ring-2 focus:ring-campus-500 text-slate-700">
+              <option value="Electronics">Electronics & Gadgets</option>
+              <option value="ID & Cards">Student ID & Smartcards</option>
+              <option value="Bags & Books">Bags, Notebooks & Books</option>
+              <option value="Keys & Wallets">Keys, Wallets & Badges</option>
+              <option value="Accessories">Bottles, Apparel & Others</option>
+            </select>
+          </div>
+
+          <!-- Date & Time -->
+          <div>
+            <label for="formDate" class="block text-xs font-bold text-slate-700 mb-1">Incident Date *</label>
+            <input type="date" id="formDate" required class="w-full text-xs font-medium rounded-xl border border-slate-200 p-2.5 focus:outline-none focus:ring-2 focus:ring-campus-500 text-slate-700">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <!-- Campus Zone Dropdown -->
+          <div>
+            <label for="formZone" class="block text-xs font-bold text-slate-700 mb-1">Primary Campus Area *</label>
+            <select id="formZone" required class="w-full text-xs font-medium rounded-xl border border-slate-200 p-2.5 focus:outline-none focus:ring-2 focus:ring-campus-500 text-slate-700">
+              <option value="Central Library">Central Library</option>
+              <option value="Computer Center">Computer Center / IT Labs</option>
+              <option value="Student Canteen">Student Canteen & Food Court</option>
+              <option value="Sports Complex">Sports Complex / Grounds</option>
+              <option value="Academic Block">Academic Blocks (A, B, C)</option>
+              <option value="Hostel Grounds">Hostel Premises</option>
+            </select>
+          </div>
+
+          <!-- Specific Landmark -->
+          <div>
+            <label for="formLocationSpecific" class="block text-xs font-bold text-slate-700 mb-1">Specific Room / Bench *</label>
+            <input type="text" id="formLocationSpecific" required placeholder="e.g. 2nd Floor Silent Hall Table 14" class="w-full text-xs font-medium rounded-xl border border-slate-200 p-2.5 focus:outline-none focus:ring-2 focus:ring-campus-500">
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div>
+          <label for="formDesc" class="block text-xs font-bold text-slate-700 mb-1">Detailed Description *</label>
+          <textarea id="formDesc" rows="3" required placeholder="Mention specific identifiers (e.g. scratches, stickers, brand markings, wallpaper, casing color)..." class="w-full text-xs font-medium rounded-xl border border-slate-200 p-2.5 focus:outline-none focus:ring-2 focus:ring-campus-500"></textarea>
+        </div>
+
+        <!-- Contact Credentials -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label for="formContactEmail" class="block text-xs font-bold text-slate-700 mb-1">University Email / Contact *</label>
+            <input type="email" id="formContactEmail" required placeholder="student@university.edu" class="w-full text-xs font-medium rounded-xl border border-slate-200 p-2.5 focus:outline-none focus:ring-2 focus:ring-campus-500">
+          </div>
+          <div>
+            <label for="formContactPhone" class="block text-xs font-bold text-slate-700 mb-1">Phone / WhatsApp (Optional)</label>
+            <input type="tel" id="formContactPhone" placeholder="+1 (555) 019-2834" class="w-full text-xs font-medium rounded-xl border border-slate-200 p-2.5 focus:outline-none focus:ring-2 focus:ring-campus-500">
+          </div>
+        </div>
+
+        <!-- Optional Reward or Holding Note -->
+        <div>
+          <label for="formNotes" class="block text-xs font-bold text-slate-700 mb-1">Optional Note / Reward / Current Custody</label>
+          <input type="text" id="formNotes" placeholder="e.g. Submitted at Security Guard Desk 1, or Reward $20" class="w-full text-xs font-medium rounded-xl border border-slate-200 p-2.5 focus:outline-none focus:ring-2 focus:ring-campus-500">
+        </div>
+
+        <!-- Submit & Actions -->
+        <div class="pt-3 border-t border-slate-100 flex items-center justify-end gap-3">
+          <button type="button" onclick="closeReportModal()" class="px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition">
+            Cancel
+          </button>
+          <button type="submit" class="px-5 py-2.5 rounded-xl bg-campus-600 hover:bg-campus-700 text-white text-xs font-bold shadow-md shadow-campus-600/30 transition">
+            Publish Record
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
+  <!-- Claim / Contact Modal Popup -->
+  <div id="claimModal" class="fixed inset-0 z-50 hidden overflow-y-auto modal-backdrop flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 relative my-8">
+      <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+        <div class="flex items-center gap-2.5">
+          <div class="h-9 w-9 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
+            <i class="ph-bold ph-shield-check text-xl"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-slate-900">Verification & Handover</h3>
+            <p class="text-xs text-slate-400">Safe recovery steps for this item</p>
+          </div>
+        </div>
+        <button onclick="closeClaimModal()" class="h-8 w-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center">
+          <i class="ph-bold ph-x text-sm"></i>
+        </button>
+      </div>
+
+      <div id="claimModalContent" class="py-4 space-y-4 text-xs text-slate-600">
+        <!-- Injected via JavaScript -->
+      </div>
+
+      <div class="pt-3 border-t border-slate-100 flex items-center justify-between">
+        <button id="toggleResolvedBtn" class="text-xs font-bold px-3.5 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 flex items-center gap-1.5 transition">
+          <i class="ph-bold ph-check text-emerald-600"></i>
+          <span id="resolvedActionText">Mark as Resolved</span>
+        </button>
+        <button onclick="closeClaimModal()" class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-black text-white text-xs font-semibold transition">
+          Close Window
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Feedback -->
+  <div id="toast" class="fixed bottom-6 right-6 z-50 transform translate-y-24 opacity-0 transition-all duration-300 pointer-events-none flex items-center gap-2.5 px-4 py-3 rounded-2xl shadow-xl bg-slate-900 text-white text-xs font-medium">
+    <i id="toastIcon" class="ph-bold ph-check-circle text-emerald-400 text-base"></i>
+    <span id="toastMsg">Operation successful</span>
+  </div>
+
+  <!-- ================= JAVASCRIPT LOGIC ================= -->
+  <script>
+    // LocalStorage Key
+    const STORAGE_KEY = 'campusfind_items_v1';
+
+    // Initial Realistic Seed Items
+    const SEED_ITEMS = [
+      {
+        id: 'cf-101',
+        title: 'Dell 65W USB-C Laptop Charger',
+        type: 'LOST',
+        category: 'Electronics',
+        date: '2026-10-25',
+        zone: 'Computer Center',
+        locationSpecific: 'Lab 3, Workstation #18',
+        desc: 'Matte black charger block with a tiny green sticker on the cable joint. Left behind after OS lab session.',
+        contactEmail: 'aarav.sharma@campus.edu',
+        contactPhone: '+1 (555) 492-1102',
+        notes: 'Urgent, needed for upcoming midterms project.',
+        status: 'LOST',
+        icon: 'ph-plug'
+      },
+      {
+        id: 'cf-102',
+        title: 'Student ID Smartcard - Dept of CSE',
+        type: 'FOUND',
+        category: 'ID & Cards',
+        date: '2026-10-26',
+        zone: 'Central Library',
+        locationSpecific: 'Ground Floor Turnstile Area',
+        desc: 'Card belongs to 3rd-year student with roll ending in 0492. Found placed on the barrier kiosk.',
+        contactEmail: 'library.desk@campus.edu',
+        contactPhone: 'Ext 104',
+        notes: 'Handed over directly to Library Reception Desk.',
+        status: 'FOUND',
+        icon: 'ph-identification-card'
+      },
+      {
+        id: 'cf-103',
+        title: 'Casio FX-991EX ClassWiz Calculator',
+        type: 'FOUND',
+        category: 'Electronics',
+        date: '2026-10-24',
+        zone: 'Academic Block',
+        locationSpecific: 'Block B, Hall 204 (Desk 12)',
+        desc: 'Scientific calculator with white sliding cover. Has faint initials "R.K." engraved on back cover.',
+        contactEmail: 'proctor.b204@campus.edu',
+        contactPhone: '',
+        notes: 'Stored with the Exam Superintendent in Room 102.',
+        status: 'FOUND',
+        icon: 'ph-calculator'
+      },
+      {
+        id: 'cf-104',
+        title: 'Boat Airdopes True Wireless Case (Black)',
+        type: 'LOST',
+        category: 'Electronics',
+        date: '2026-10-26',
+        zone: 'Sports Complex',
+        locationSpecific: 'Basketball Court Bleachers row 2',
+        desc: 'Black charging case with a red silicone sleeve. Both earbuds are inside the case.',
+        contactEmail: 'priya.k@campus.edu',
+        contactPhone: '+1 (555) 883-9912',
+        notes: 'Modest reward offered if returned.',
+        status: 'LOST',
+        icon: 'ph-headphones'
+      },
+      {
+        id: 'cf-105',
+        title: 'Hostel Room & Bike Keyring',
+        type: 'FOUND',
+        category: 'Keys & Wallets',
+        date: '2026-10-27',
+        zone: 'Student Canteen',
+        locationSpecific: 'Juice counter corner bench',
+        desc: 'Three keys on a metallic ring featuring a blue astronaut rubber keychain.',
+        contactEmail: 'canteen.admin@campus.edu',
+        contactPhone: '+1 (555) 902-1200',
+        notes: 'Can be picked up directly at the cashier desk.',
+        status: 'FOUND',
+        icon: 'ph-key'
+      },
+      {
+        id: 'cf-106',
+        title: 'The North Face Black Borealis Backpack',
+        type: 'RESOLVED',
+        category: 'Bags & Books',
+        date: '2026-10-22',
+        zone: 'Central Library',
+        locationSpecific: '2nd Floor Reference Section',
+        desc: 'Contained Calculus textbook, ruled notebook, and eyeglasses case.',
+        contactEmail: 'david.miller@campus.edu',
+        contactPhone: '',
+        notes: 'Successfully retrieved via Security Office.',
+        status: 'RESOLVED',
+        icon: 'ph-backpack'
+      },
+      {
+        id: 'cf-107',
+        title: 'Hydro Flask 32oz Insulated Water Bottle',
+        type: 'LOST',
+        category: 'Accessories',
+        date: '2026-10-26',
+        zone: 'Academic Block',
+        locationSpecific: 'Block C Seminar Hall 1',
+        desc: 'Pacific blue metal flask with NASA and GitHub stickers on the side.',
+        contactEmail: 'sam.wilson@campus.edu',
+        contactPhone: '',
+        notes: '',
+        status: 'LOST',
+        icon: 'ph-drop'
+      }
+    ];
+
+    // Category Icon Helpers
+    function getCategoryIcon(cat) {
+      switch(cat) {
+        case 'Electronics': return 'ph-laptop';
+        case 'ID & Cards': return 'ph-identification-card';
+        case 'Bags & Books': return 'ph-backpack';
+        case 'Keys & Wallets': return 'ph-key';
+        case 'Accessories': return 'ph-t-shirt';
+        default: return 'ph-package';
+      }
+    }
+
+    // App State
+    let items = [];
+
+    // Initialize Data from Storage
+    function initData() {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        try {
+          items = JSON.parse(stored);
+        } catch(e) {
+          items = SEED_ITEMS;
+          saveData();
+        }
+      } else {
+        items = SEED_ITEMS;
+        saveData();
+      }
+      render();
+    }
+
+    // Save Data to Storage
+    function saveData() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    }
+
+    // Re-seed Data
+    function seedInitialData(confirmReq = false) {
+      items = JSON.parse(JSON.stringify(SEED_ITEMS));
+      saveData();
+      render();
+      showToast('Sample dataset restored successfully!');
+    }
+
+    // Update KPI Stat Numbers
+    function updateStats() {
+      const total = items.length;
+      const activeLost = items.filter(i => i.status === 'LOST').length;
+      const awaitingClaim = items.filter(i => i.status === 'FOUND').length;
+      const resolved = items.filter(i => i.status === 'RESOLVED').length;
+
+      document.getElementById('statTotalItems').innerText = total;
+      document.getElementById('statActiveLost').innerText = activeLost;
+      document.getElementById('statAwaitingClaim').innerText = awaitingClaim;
+      document.getElementById('statResolved').innerText = resolved;
+    }
+
+    // Render Items Grid with active filters
+    function render() {
+      updateStats();
+
+      const searchVal = document.getElementById('searchInput').value.toLowerCase().trim();
+      const statusVal = document.getElementById('statusFilter').value;
+      const categoryVal = document.getElementById('categoryFilter').value;
+      const locationVal = document.getElementById('locationFilter').value;
+      const sortVal = document.getElementById('sortFilter').value;
+
+      // Filter logic
+      let filtered = items.filter(item => {
+        // Status filter
+        if (statusVal !== 'ALL' && item.status !== statusVal) return false;
+
+        // Category filter
+        if (categoryVal !== 'ALL' && item.category !== categoryVal) return false;
+
+        // Location Zone filter
+        if (locationVal !== 'ALL' && item.zone !== locationVal) return false;
+
+        // Search text filter
+        if (searchVal) {
+          const haystack = `${item.title} ${item.desc} ${item.zone} ${item.locationSpecific} ${item.category}`.toLowerCase();
+          if (!haystack.includes(searchVal)) return false;
+        }
+
+        return true;
+      });
+
+      // Sorting
+      filtered.sort((a, b) => {
+        if (sortVal === 'NEWEST') return new Date(b.date) - new Date(a.date);
+        if (sortVal === 'OLDEST') return new Date(a.date) - new Date(b.date);
+        if (sortVal === 'TITLE') return a.title.localeCompare(b.title);
+        return 0;
+      });
+
+      // UI Counter
+      document.getElementById('resultsCount').innerText = `Showing ${filtered.length} matching item${filtered.length === 1 ? '' : 's'}`;
+
+      const grid = document.getElementById('itemsGrid');
+      const emptyState = document.getElementById('emptyState');
+
+      if (filtered.length === 0) {
+        grid.innerHTML = '';
+        emptyState.classList.remove('hidden');
+        return;
+      }
+
+      emptyState.classList.add('hidden');
+
+      grid.innerHTML = filtered.map(item => {
+        // Status badge styling
+        let badgeColor = '';
+        let badgeText = item.status;
+        let badgeIcon = '';
+
+        if (item.status === 'LOST') {
+          badgeColor = 'bg-rose-50 text-rose-700 border-rose-200/80';
+          badgeIcon = 'ph-warning-circle';
+        } else if (item.status === 'FOUND') {
+          badgeColor = 'bg-emerald-50 text-emerald-700 border-emerald-200/80';
+          badgeIcon = 'ph-hand-heart';
+        } else {
+          badgeColor = 'bg-slate-100 text-slate-600 border-slate-200';
+          badgeIcon = 'ph-check-circle';
+        }
+
+        const iconClass = item.icon || getCategoryIcon(item.category);
+
+        return `
+          <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-md transition-all flex flex-col justify-between overflow-hidden group">
+            
+            <div class="p-5">
+              <!-- Top Row: Category & Status Badge -->
+              <div class="flex items-center justify-between gap-2 mb-3">
+                <span class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-slate-500 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-100">
+                  <i class="ph-bold ${getCategoryIcon(item.category)} text-campus-600"></i>
+                  <span>${escapeHTML(item.category)}</span>
+                </span>
+                
+                <span class="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${badgeColor}">
+                  <i class="ph-bold ${badgeIcon}"></i>
+                  <span>${badgeText}</span>
+                </span>
+              </div>
+
+              <!-- Title & Visual Placeholder -->
+              <div class="flex items-start gap-3.5 mt-2">
+                <div class="h-12 w-12 rounded-xl bg-slate-100 group-hover:bg-indigo-50 text-slate-600 group-hover:text-campus-600 flex items-center justify-center shrink-0 transition">
+                  <i class="ph-bold ${iconClass} text-2xl"></i>
+                </div>
+                <div class="min-w-0 flex-1">
+                  <h4 class="font-bold text-slate-900 text-sm tracking-tight leading-snug line-clamp-1 group-hover:text-campus-600 transition">
+                    ${escapeHTML(item.title)}
+                  </h4>
+                  <p class="text-xs text-slate-500 line-clamp-2 mt-1">
+                    ${escapeHTML(item.desc)}
+                  </p>
+                </div>
+              </div>
+
+              <!-- Location & Date details -->
+              <div class="mt-4 pt-3 border-t border-slate-100 space-y-1.5 text-[11px] text-slate-500 font-medium">
+                <div class="flex items-center gap-2">
+                  <i class="ph-bold ph-map-pin text-rose-500 shrink-0 text-xs"></i>
+                  <span class="truncate"><strong>${escapeHTML(item.zone)}</strong> &bull; ${escapeHTML(item.locationSpecific)}</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <i class="ph-bold ph-calendar-blank text-slate-400 shrink-0 text-xs"></i>
+                  <span>Reported on: <strong class="text-slate-700">${formatDate(item.date)}</strong></span>
+                </div>
+                ${item.notes ? `
+                  <div class="flex items-center gap-2 text-indigo-700 bg-indigo-50/70 p-1.5 rounded-lg text-[10px]">
+                    <i class="ph-bold ph-info shrink-0"></i>
+                    <span class="truncate">${escapeHTML(item.notes)}</span>
+                  </div>
+                ` : ''}
+              </div>
+            </div>
+
+            <!-- Card Bottom Action Toolbar -->
+            <div class="px-5 py-3 bg-slate-50/80 border-t border-slate-100 flex items-center justify-between gap-2">
+              <button onclick="openClaimModal('${item.id}')" class="flex-1 py-2 px-3 text-xs font-bold rounded-xl bg-slate-900 hover:bg-black text-white flex items-center justify-center gap-1.5 transition active:scale-95 shadow-xs">
+                <i class="ph-bold ${item.status === 'LOST' ? 'ph-paper-plane-tilt' : 'ph-hand-coins'}"></i>
+                <span>${item.status === 'LOST' ? 'Found This? Contact' : 'Verify & Claim'}</span>
+              </button>
+
+              <button onclick="deleteItem('${item.id}')" title="Delete record" class="p-2 text-slate-400 hover:text-rose-600 rounded-xl hover:bg-rose-50 transition">
+                <i class="ph-bold ph-trash text-sm"></i>
+              </button>
+            </div>
+
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Modal Control: Report Form
+    function openReportModal(defaultType = 'LOST') {
+      const modal = document.getElementById('reportModal');
+      modal.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+
+      // Set radio
+      const radios = document.getElementsByName('itemType');
+      radios.forEach(r => {
+        r.checked = (r.value === defaultType);
+      });
+
+      // Set default date to today
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('formDate').value = today;
+      document.getElementById('formTitle').focus();
+    }
+
+    function closeReportModal() {
+      const modal = document.getElementById('reportModal');
+      modal.classList.add('hidden');
+      document.body.style.overflow = 'auto';
+      document.getElementById('reportForm').reset();
+    }
+
+    // Modal Control: Claim / Security Handover Modal
+    let activeClaimItem = null;
+
+    function openClaimModal(itemId) {
+      activeClaimItem = items.find(i => i.id === itemId);
+      if (!activeClaimItem) return;
+
+      const modal = document.getElementById('claimModal');
+      const content = document.getElementById('claimModalContent');
+      const resolvedBtn = document.getElementById('toggleResolvedBtn');
+      const resolvedActionText = document.getElementById('resolvedActionText');
+
+      if (activeClaimItem.status === 'RESOLVED') {
+        resolvedActionText.innerText = 'Reopen Case';
+      } else {
+        resolvedActionText.innerText = 'Mark as Recovered / Resolved';
+      }
+
+      content.innerHTML = `
+        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+          <div class="font-bold text-slate-900 text-sm mb-1">${escapeHTML(activeClaimItem.title)}</div>
+          <div class="text-[11px] text-slate-500">${escapeHTML(activeClaimItem.desc)}</div>
+        </div>
+
+        <div class="space-y-2">
+          <div class="font-semibold text-slate-800 text-[11px] uppercase tracking-wider">Reporter Contact & Custody</div>
+          <div class="flex items-center gap-2 p-2 bg-indigo-50/50 rounded-xl border border-indigo-100 text-indigo-950 font-medium">
+            <i class="ph-bold ph-envelope text-indigo-600"></i>
+            <span class="select-all">${escapeHTML(activeClaimItem.contactEmail)}</span>
+          </div>
+          ${activeClaimItem.contactPhone ? `
+            <div class="flex items-center gap-2 p-2 bg-indigo-50/50 rounded-xl border border-indigo-100 text-indigo-950 font-medium">
+              <i class="ph-bold ph-phone-call text-indigo-600"></i>
+              <span class="select-all">${escapeHTML(activeClaimItem.contactPhone)}</span>
+            </div>
+          ` : ''}
+        </div>
+
+        <div class="p-3 bg-amber-50 rounded-xl border border-amber-200/80 text-amber-900 text-[11px] space-y-1">
+          <div class="font-bold flex items-center gap-1.5 text-amber-950">
+            <i class="ph-bold ph-warning"></i>
+            <span>Ownership Verification Protocol</span>
+          </div>
+          <p>
+            To prevent false claims, you will be required to demonstrate unlock PINs, describe private physical markings, or present matching university registration credentials during exchange.
+          </p>
+        </div>
+      `;
+
+      resolvedBtn.onclick = function() {
+        toggleItemResolved(activeClaimItem.id);
+        closeClaimModal();
+      };
+
+      modal.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeClaimModal() {
+      const modal = document.getElementById('claimModal');
+      modal.classList.add('hidden');
+      document.body.style.overflow = 'auto';
+      activeClaimItem = null;
+    }
+
+    // Toggle Item Status
+    function toggleItemResolved(id) {
+      const idx = items.findIndex(i => i.id === id);
+      if (idx !== -1) {
+        if (items[idx].status === 'RESOLVED') {
+          items[idx].status = items[idx].type; // Revert to initial type
+          showToast('Case reopened successfully');
+        } else {
+          items[idx].status = 'RESOLVED';
+          showToast('Item status marked as Claimed & Resolved!');
+        }
+        saveData();
+        render();
+      }
+    }
+
+    // Delete Item
+    function deleteItem(id) {
+      items = items.filter(i => i.id !== id);
+      saveData();
+      render();
+      showToast('Record deleted from campus log');
+    }
+
+    // Form Submission Handling
+    function handleReportSubmit(e) {
+      e.preventDefault();
+
+      const type = document.querySelector('input[name="itemType"]:checked').value;
+      const title = document.getElementById('formTitle').value.trim();
+      const category = document.getElementById('formCategory').value;
+      const date = document.getElementById('formDate').value;
+      const zone = document.getElementById('formZone').value;
+      const locationSpecific = document.getElementById('formLocationSpecific').value.trim();
+      const desc = document.getElementById('formDesc').value.trim();
+      const contactEmail = document.getElementById('formContactEmail').value.trim();
+      const contactPhone = document.getElementById('formContactPhone').value.trim();
+      const notes = document.getElementById('formNotes').value.trim();
+
+      if (!title || !desc || !contactEmail) {
+        showToast('Please fill out all required fields');
+        return;
+      }
+
+      const newItem = {
+        id: 'cf-' + Date.now().toString().slice(-5),
+        title,
+        type,
+        category,
+        date: date || new Date().toISOString().split('T')[0],
+        zone,
+        locationSpecific,
+        desc,
+        contactEmail,
+        contactPhone,
+        notes,
+        status: type,
+        icon: getCategoryIcon(category)
+      };
+
+      // Add to beginning of records
+      items.unshift(newItem);
+      saveData();
+      closeReportModal();
+      render();
+      showToast(`Record "${title}" published live!`);
+
+      // Scroll to catalog section
+      document.getElementById('itemsGrid').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // Filter Reset Helpers
+    function resetFilters() {
+      document.getElementById('searchInput').value = '';
+      document.getElementById('headerSearchInput').value = '';
+      document.getElementById('statusFilter').value = 'ALL';
+      document.getElementById('categoryFilter').value = 'ALL';
+      document.getElementById('locationFilter').value = 'ALL';
+      document.getElementById('sortFilter').value = 'NEWEST';
+      document.getElementById('clearSearchBtn').classList.add('hidden');
+      render();
+    }
+
+    function resetFiltersAndScroll() {
+      resetFilters();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Toast Notification Utility
+    let toastTimeout;
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toastMsg');
+      toastMsg.innerText = msg;
+
+      toast.classList.remove('translate-y-24', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+
+      clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        toast.classList.add('translate-y-24', 'opacity-0');
+        toast.classList.remove('translate-y-0', 'opacity-100');
+      }, 3200);
+    }
+
+    // Utility: Safe HTML Escape
+    function escapeHTML(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    // Utility: Date formatter
+    function formatDate(dateStr) {
+      if (!dateStr) return '';
+      const parts = dateStr.split('-');
+      if (parts.length === 3) {
+        const d = new Date(parts[0], parts[1] - 1, parts[2]);
+        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      }
+      return dateStr;
+    }
+
+    // Event Listeners for Filters
+    window.addEventListener('DOMContentLoaded', () => {
+      initData();
+
+      const searchInput = document.getElementById('searchInput');
+      const headerSearchInput = document.getElementById('headerSearchInput');
+      const clearSearchBtn = document.getElementById('clearSearchBtn');
+      const statusFilter = document.getElementById('statusFilter');
+      const categoryFilter = document.getElementById('categoryFilter');
+      const locationFilter = document.getElementById('locationFilter');
+      const sortFilter = document.getElementById('sortFilter');
+
+      // Sync Search Inputs
+      searchInput.addEventListener('input', (e) => {
+        headerSearchInput.value = e.target.value;
+        if (e.target.value) {
+          clearSearchBtn.classList.remove('hidden');
+        } else {
+          clearSearchBtn.classList.add('hidden');
+        }
+        render();
+      });
+
+      headerSearchInput.addEventListener('input', (e) => {
+        searchInput.value = e.target.value;
+        if (e.target.value) {
+          clearSearchBtn.classList.remove('hidden');
+        } else {
+          clearSearchBtn.classList.add('hidden');
+        }
+        render();
+      });
+
+      clearSearchBtn.addEventListener('click', () => {
+        searchInput.value = '';
+        headerSearchInput.value = '';
+        clearSearchBtn.classList.add('hidden');
+        render();
+      });
+
+      statusFilter.addEventListener('change', render);
+      categoryFilter.addEventListener('change', render);
+      locationFilter.addEventListener('change', render);
+      sortFilter.addEventListener('change', render);
+
+      // Close modal on escape key
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          closeReportModal();
+          closeClaimModal();
+        }
+      });
+    });
+  </script>
+</body>
+</html>
